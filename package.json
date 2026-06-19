@@ -1,0 +1,10 @@
+{
+  "name": "mock-application-for-cicd",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Habit tracker — Express API serving a static React build",
+  "scripts": {
+    "build": "cd backend && npm install && npm run build:client",
+    "start": "cd backend && npm start"
+  }
+}
