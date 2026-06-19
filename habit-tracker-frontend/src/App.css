@@ -1,0 +1,375 @@
+/* Layout built on the design tokens defined in index.css */
+
+#root {
+  text-align: left;
+}
+
+.muted {
+  color: var(--text);
+  opacity: 0.8;
+}
+
+.brand {
+  font-size: 28px;
+  letter-spacing: -0.5px;
+  margin: 0;
+  color: var(--accent);
+}
+
+/* ---------- buttons & inputs ---------- */
+
+.btn {
+  font: inherit;
+  font-size: 15px;
+  border-radius: 8px;
+  padding: 9px 16px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-h);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+}
+.btn:hover {
+  border-color: var(--accent-border);
+}
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.btn-primary:hover {
+  border-color: var(--accent);
+  filter: brightness(1.05);
+}
+
+.btn-ghost {
+  background: transparent;
+}
+
+.link {
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+  text-decoration: underline;
+}
+
+input[type='text'],
+input[type='password'] {
+  font: inherit;
+  font-size: 16px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-h);
+  width: 100%;
+  box-sizing: border-box;
+}
+input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+.error {
+  color: #e5484d;
+  font-size: 14px;
+  margin: 0;
+}
+.inline-error {
+  align-self: center;
+}
+
+.card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 24px;
+}
+
+/* ---------- auth screen ---------- */
+
+.auth-screen {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 380px;
+  text-align: center;
+}
+
+.auth-subtitle {
+  color: var(--text);
+  margin: 8px 0 24px;
+  font-size: 15px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  text-align: left;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.field span {
+  font-size: 13px;
+  color: var(--text);
+}
+
+.auth-toggle {
+  margin-top: 20px;
+  font-size: 14px;
+}
+
+/* ---------- dashboard ---------- */
+
+.dashboard {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 28px;
+  border-bottom: 1px solid var(--border);
+}
+
+.user-box {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.dashboard-main {
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 820px;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.add-habit-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px 24px;
+}
+.add-habit-title {
+  margin: 0;
+  font-size: 16px;
+}
+
+.preset-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.preset-chip {
+  font: inherit;
+  font-size: 14px;
+  padding: 7px 13px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--social-bg);
+  color: var(--text-h);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, opacity 0.15s;
+}
+.preset-chip:hover {
+  border-color: var(--accent-border);
+  background: var(--accent-bg);
+}
+.preset-chip:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.add-habit {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.add-habit input {
+  flex: 1;
+  min-width: 200px;
+}
+
+/* ---------- stats ---------- */
+
+.stats-bar {
+  display: flex;
+  gap: 12px;
+}
+.stat-chip {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--social-bg);
+}
+.stat-value {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+.stat-label {
+  font-size: 13px;
+  color: var(--text);
+}
+
+/* ---------- habit list ---------- */
+
+.habit-list {
+  padding: 8px 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.habit-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 8px;
+  border-bottom: 1px solid var(--border);
+}
+.habit-row:last-child {
+  border-bottom: none;
+}
+.habit-head {
+  padding-bottom: 6px;
+}
+
+.habit-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.habit-name {
+  font-weight: 500;
+  color: var(--text-h);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.habit-streak {
+  font-size: 13px;
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 34px);
+  gap: 6px;
+}
+
+.day-head {
+  width: 34px;
+  text-align: center;
+  font-size: 12px;
+}
+
+.day-cell {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background 0.12s, border-color 0.12s, transform 0.08s;
+}
+.day-cell:hover {
+  border-color: var(--accent-border);
+}
+.day-cell:active {
+  transform: scale(0.92);
+}
+.day-cell .day-label {
+  font-size: 11px;
+  color: var(--text);
+}
+.day-cell.today {
+  border-color: var(--accent-border);
+}
+.day-cell.done {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.day-cell.done .day-label {
+  color: #fff;
+}
+
+.delete-btn {
+  flex-shrink: 0;
+  padding: 6px 10px;
+  color: var(--text);
+}
+.delete-btn:hover {
+  color: #e5484d;
+  border-color: #e5484d;
+}
+.delete-spacer {
+  width: 38px;
+  flex-shrink: 0;
+}
+
+.empty-state {
+  text-align: center;
+}
+.empty-state p {
+  margin: 4px 0;
+}
+
+@media (max-width: 640px) {
+  .week-grid {
+    grid-template-columns: repeat(7, 28px);
+    gap: 4px;
+  }
+  .day-cell,
+  .day-head {
+    width: 28px;
+  }
+  .day-cell {
+    height: 28px;
+  }
+  .dashboard-main,
+  .app-header {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
