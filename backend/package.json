@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon server.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "build:client": "npm --prefix ../habit-tracker-frontend install && npm --prefix ../habit-tracker-frontend run build",
+    "serve": "npm run build:client && node server.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

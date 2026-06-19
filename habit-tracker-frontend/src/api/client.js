@@ -1,4 +1,6 @@
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000'
+// Default to same-origin (relative) so the production build works wherever the
+// backend serves it. In dev, Vite proxies /api to the backend (see vite.config).
+const BASE_URL = import.meta.env.VITE_API_URL || ''
 const TOKEN_KEY = 'habit-tracker-token'
 
 export function getToken() {

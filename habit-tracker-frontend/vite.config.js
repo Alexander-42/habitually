@@ -5,6 +5,12 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   esbuild: { jsx: 'automatic' },
+  server: {
+    // Proxy API calls to the backend during dev so the app can use relative /api.
+    proxy: {
+      '/api': 'http://127.0.0.1:4000',
+    },
+  },
   test: {
     environment: 'jsdom',
     globals: true,
