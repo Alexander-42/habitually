@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me'
+const JWT_SECRET = process.env.JWT_SECRET
 const TOKEN_TTL = '7d'
 
 export function hashPassword(password) {

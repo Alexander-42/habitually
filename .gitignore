@@ -28,3 +28,4 @@ backend/e2e-data.json
 .idea/
 .DS_Store
 *.local
+.env
