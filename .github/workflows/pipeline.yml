@@ -37,6 +37,21 @@ jobs:
       env:
         HOME: /root
         JWT_SECRET: ${{ secrets.JWT_PIPELINE_SECRET }}
+        # Exercise the real (Postgres) persistence path end-to-end. The service
+        # container below is reachable by its label as a hostname.
+        DATABASE_URL: postgres://postgres:postgres@postgres:5432/habits
+        DATABASE_SSL: 'false'
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: habits
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - uses: actions/checkout@v6
@@ -57,6 +72,19 @@ jobs:
     defaults:
       run:
         working-directory: backend
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: habits_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -72,6 +100,8 @@ jobs:
         run: npm run test
         env:
           JWT_SECRET: ${{ secrets.JWT_PIPELINE_SECRET }}
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/habits_test
+          DATABASE_SSL: 'false'
 
   deploy:
     needs: [build_and_test_frontend, test_and_lint_backend, run_e2e_tests]
