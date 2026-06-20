@@ -11,48 +11,64 @@ on:
 jobs:
   build_and_test_frontend:
     runs-on: ubuntu-latest
-      
+    defaults:
+      run:
+        working-directory: habit-tracker-frontend
     steps:
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: habit-tracker-frontend/package-lock.json
       - name: Install frontend dependencies
-        run: cd habit-tracker-frontend && npm ci
+        run: npm ci
       - name: check frontend style
         run: npm run lint
       - name: run build
         run: npm run build
       - name: run tests
         run: npm run test
-  
+
   run_e2e_tests:
     runs-on: ubuntu-latest
     container:
       image: mcr.microsoft.com/playwright:v1.61.0-noble
-
       env:
         HOME: /root
-    
     steps:
+      - uses: actions/checkout@v6
+      # The e2e suite serves the real build: Vite build + the Express backend,
+      # so both packages need their dependencies installed.
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: backend
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: habit-tracker-frontend
       - name: run e2e tests
         run: npm run e2e
+        working-directory: habit-tracker-frontend
 
   test_and_lint_backend:
     runs-on: ubuntu-latest
-
+    defaults:
+      run:
+        working-directory: backend
     steps:
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
       - name: Install backend dependencies
-        run: cd backend && npm ci
-      - name: check frontend style
+        run: npm ci
+      - name: check backend style
         run: npm run lint
       - name: run tests
         run: npm run test
 
-
-      
   deploy:
     needs: [build_and_test_frontend, test_and_lint_backend, run_e2e_tests]
     runs-on: ubuntu-latest
@@ -60,7 +76,7 @@ jobs:
       - name: Trigger deployment on render
         if: ${{ github.event_name == 'push' && !contains(join(github.event.commits.*.message, ' '), '#skip') }}
         run: curl ${{ secrets.RENDER_DEPLOY_HOOK }}
-  
+
   tag_release:
     needs: [deploy]
     if: ${{ github.event_name == 'push' && !contains(join(github.event.commits.*.message, ' '), '#skip') }}
@@ -73,5 +89,3 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEFAULT_BUMP: patch
           DRY_RUN: true
-
-  
