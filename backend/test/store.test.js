@@ -1,43 +1,80 @@
-import { describe, it, after } from 'node:test'
+import { describe, it, before, after } from 'node:test'
 import assert from 'node:assert/strict'
-import { mkdtempSync, rmSync, readFileSync, existsSync } from 'node:fs'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
 
-// Point the store at a throwaway file BEFORE importing it, so we exercise the
-// DATA_FILE override and the "file does not exist yet" load path.
-const dir = mkdtempSync(join(tmpdir(), 'store-test-'))
-const dataFile = join(dir, 'data.json')
-process.env.DATA_FILE = dataFile
+// Point the store at a throwaway Postgres database BEFORE importing it. CI sets
+// DATABASE_URL to a service container; locally it defaults to a `habits_test`
+// database on localhost (create it with `createdb habits_test`).
+process.env.DATABASE_URL =
+  process.env.DATABASE_URL ||
+  'postgres://postgres:postgres@localhost:5432/habits_test'
+process.env.DATABASE_SSL = process.env.DATABASE_SSL || 'false'
 
-const { default: db, save } = await import('../store.js')
+const {
+  pool,
+  init,
+  createUser,
+  getUserByUsername,
+  getUserById,
+  createHabit,
+  getHabits,
+  getHabit,
+  setCompletions,
+  deleteHabit,
+} = await import('../store.js')
 
-describe('store', () => {
-  after(() => rmSync(dir, { recursive: true, force: true }))
-
-  it('starts empty when the data file does not exist', () => {
-    assert.deepEqual(db.users, [])
-    assert.deepEqual(db.habits, [])
-    assert.equal(existsSync(dataFile), false)
+describe('store (postgres)', () => {
+  before(async () => {
+    await init()
+    // Start from a clean slate; CASCADE clears habits via the FK too.
+    await pool.query('TRUNCATE users, habits CASCADE')
   })
 
-  it('persists the in-memory db to DATA_FILE on save()', () => {
-    db.users.push({ id: 'u1', username: 'alice', passwordHash: 'x' })
-    db.habits.push({ id: 'h1', userId: 'u1', name: 'Read', completions: {} })
-    save()
-
-    assert.equal(existsSync(dataFile), true)
-    const onDisk = JSON.parse(readFileSync(dataFile, 'utf-8'))
-    assert.equal(onDisk.users.length, 1)
-    assert.equal(onDisk.users[0].username, 'alice')
-    assert.equal(onDisk.habits[0].name, 'Read')
+  after(async () => {
+    await pool.query('TRUNCATE users, habits CASCADE')
+    await pool.end()
   })
 
-  it('reflects later mutations on subsequent save()', () => {
-    db.habits[0].completions['2026-06-19'] = true
-    save()
+  it('persists a created user and reads it back', async () => {
+    await createUser({ id: 'u1', username: 'Alice', passwordHash: 'x' })
+    const byId = await getUserById('u1')
+    assert.equal(byId.username, 'Alice')
+    assert.equal(byId.passwordHash, 'x')
+  })
 
-    const onDisk = JSON.parse(readFileSync(dataFile, 'utf-8'))
-    assert.equal(onDisk.habits[0].completions['2026-06-19'], true)
+  it('looks users up case-insensitively', async () => {
+    const u = await getUserByUsername('alice')
+    assert.equal(u.id, 'u1')
+  })
+
+  it('returns undefined for unknown users', async () => {
+    assert.equal(await getUserByUsername('ghost'), undefined)
+    assert.equal(await getUserById('nope'), undefined)
+  })
+
+  it('creates habits scoped to a user with default completions', async () => {
+    const habit = await createHabit({
+      id: 'h1',
+      userId: 'u1',
+      name: 'Read',
+      createdAt: '2026-06-20T00:00:00.000Z',
+      completions: {},
+    })
+    assert.equal(habit.name, 'Read')
+    assert.deepEqual(habit.completions, {})
+    assert.deepEqual(await getHabits('u1'), [habit])
+    assert.deepEqual(await getHabits('someone-else'), [])
+  })
+
+  it('persists completion updates', async () => {
+    const updated = await setCompletions('h1', 'u1', { '2026-06-19': true })
+    assert.equal(updated.completions['2026-06-19'], true)
+    const reread = await getHabit('h1', 'u1')
+    assert.equal(reread.completions['2026-06-19'], true)
+  })
+
+  it('deletes habits only for their owner', async () => {
+    assert.equal(await deleteHabit('h1', 'someone-else'), false)
+    assert.equal(await deleteHabit('h1', 'u1'), true)
+    assert.deepEqual(await getHabits('u1'), [])
   })
 })

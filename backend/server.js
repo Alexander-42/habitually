@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import authRoutes from './routes/auth.js'
 import habitRoutes from './routes/habits.js'
+import { init } from './store.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const app = express()
@@ -32,6 +33,16 @@ if (existsSync(distPath)) {
       `Run "npm run build:client" to build the UI.`
   )
 }
+
+// Convert errors bubbled up from async route handlers into 500 responses.
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  console.error('[server] Unhandled error:', err)
+  res.status(500).json({ error: 'Internal server error' })
+})
+
+// Ensure the Postgres schema exists before we start accepting requests.
+await init()
 
 app.listen(PORT, () => {
   console.log(`Habit tracker running on http://localhost:${PORT}`)
