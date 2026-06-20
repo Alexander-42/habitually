@@ -3,7 +3,8 @@ import { defineConfig, devices } from '@playwright/test'
 // E2E tests drive a real browser against the *production* arrangement: the
 // Express backend serving the built dist + API from a single origin (same as
 // Render). One webServer builds the dist, then starts the backend; the backend
-// uses an isolated DATA_FILE so tests never touch real data.json.
+// talks to Postgres via DATABASE_URL (inherited from the environment) — point
+// it at a throwaway database so tests never touch real data.
 export default defineConfig({
   testDir: './e2e',
   // All specs share one backend process + data file, so run serially.
@@ -27,6 +28,6 @@ export default defineConfig({
     url: 'http://127.0.0.1:4000/api/health',
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
-    env: { PORT: '4000', DATA_FILE: '../backend/e2e-data.json' },
+    env: { PORT: '4000' },
   },
 })
