@@ -106,6 +106,7 @@ jobs:
           nodetail: true
           notimestamp: true
           description: |
+            **Repository:** ${{ github.repository }}
             **Commit:** ${{ github.sha }}
             **Message:** ${{ github.event.head_commit.message }}
             **Author:** ${{ github.actor }}
