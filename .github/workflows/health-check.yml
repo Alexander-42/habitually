@@ -1,0 +1,17 @@
+name: Periodic health-check
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check the service URL
+        uses: jtalk/url-health-check-action@v5
+        with:
+          url: https://habitually.onrender.com/
+          max-attempts: 2
+          retry-delay: 5s

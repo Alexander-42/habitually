@@ -38,8 +38,8 @@ jobs:
         HOME: /root
     steps:
       - uses: actions/checkout@v6
-      # The e2e suite serves the real build: Vite build + the Express backend,
-      # so both packages need their dependencies installed.
+      # The e2e suite is run on a server resembling the production environment,
+      # thus both frontend and backen dependencies are needed.
       - name: Install backend dependencies
         run: npm ci
         working-directory: backend
@@ -89,3 +89,77 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEFAULT_BUMP: patch
           DRY_RUN: true
+  
+  success_notification:
+    needs: [deploy]
+    runs-on: ubuntu-latest
+    if: ${{ needs.deploy.result == 'success' && github.event_name == 'push' && !contains(join(github.event.commits.*.message, ' '), '#skip')}}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: sarisia/actions-status-discord@v1.16.0
+        if: always()
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          status: ${{ needs.deploy.result }}
+          content: ":white_check_mark: **Deployment Successful!** A new version deployed to production"
+          title: "Deployment Details"
+          nodetail: true
+          notimestamp: true
+          description: |
+            **Commit:** ${{ github.sha }}
+            **Message:** ${{ github.event.head_commit.message }}
+            **Author:** ${{ github.actor }}
+  
+  failure_notification:
+    needs:
+      - build_and_test_frontend
+      - test_and_lint_backend
+      - deploy
+      - tag_release
+    runs-on: ubuntu-latest
+    if: ${{ always() && !contains(join(github.event.commits.*.message, ' '), '#skip')}}
+    steps:
+      - name: Check if pipeline failed
+        run: |
+          echo "BUILD_FRONTEND=${{ needs.build_and_test_frontend.result }}"
+          echo "TEST_BACKEND=${{ needs.test_and_lint_backend.result}}"
+          echo "DEPLOY=${{ needs.deploy.result }}"
+          echo "TAG=${{ needs.tag_release.result }}"
+
+          if [ "${{ needs.build_and_test_frontend.result }}" = "failure" ] || \
+            [ "${{ needs.deploy.result }}" = "failure" ] || \
+            [ "${{ needs.test_and_lint_backend}}" = "failure" ] || \
+            [ "${{ needs.tag_release.result }}" = "failure" ]; then
+            echo "PIPELINE_FAILED=true" >> $GITHUB_ENV
+          else
+            echo "PIPELINE_FAILED=false" >> $GITHUB_ENV
+          fi
+
+      - uses: actions/checkout@v6
+      - name: Get commit message
+        run: echo "COMMIT_MESSAGE=$(git log -1 --pretty=%s)" >> $GITHUB_ENV
+      
+      - uses: sarisia/actions-status-discord@v1.16.0
+        if: env.PIPELINE_FAILED == 'true'
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          status: failure
+          content: ":x: **Pipeline Failed!** The pipeline encountered an error"
+          title: "Failure Details"
+          notimestamp: true
+          nodetail: true
+          description: |
+            **Repository:** ${{ github.repository }}
+            **Branch:** ${{ github.ref_name }}
+            **Commit:** ${{ github.sha }}
+            **Message:** ${{ env.COMMIT_MESSAGE }}
+            **Author:** ${{ github.actor }}
+            **Workflow:** ${{ github.workflow }}
+            **Jobs:**
+              **Frontend build:** ${{ needs.build_and_test_frontend.result }}
+              **Backend test:** ${{ needs.test_and_lint_backend.result }}
+              **Deploy:** ${{ needs.deploy.result }}
+              **Release:** ${{ needs.tag_release.result }}
+
+            [view commit](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
+            [view commit](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
