@@ -36,6 +36,8 @@ jobs:
       image: mcr.microsoft.com/playwright:v1.61.0-noble
       env:
         HOME: /root
+        JWT_SECRET: ${{ secrets.JWT_PIPELINE_SECRET }}
+
     steps:
       - uses: actions/checkout@v6
       # The e2e suite is run on a server resembling the production environment,
@@ -68,6 +70,8 @@ jobs:
         run: npm run lint
       - name: run tests
         run: npm run test
+        env:
+          JWT_SECRET: ${{ secrets.JWT_PIPELINE_SECRET }}
 
   deploy:
     needs: [build_and_test_frontend, test_and_lint_backend, run_e2e_tests]
@@ -129,7 +133,7 @@ jobs:
 
           if [ "${{ needs.build_and_test_frontend.result }}" = "failure" ] || \
             [ "${{ needs.deploy.result }}" = "failure" ] || \
-            [ "${{ needs.test_and_lint_backend}}" = "failure" ] || \
+            [ "${{ needs.test_and_lint_backend.result}}" = "failure" ] || \
             [ "${{ needs.tag_release.result }}" = "failure" ]; then
             echo "PIPELINE_FAILED=true" >> $GITHUB_ENV
           else
